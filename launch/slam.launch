@@ -1,0 +1,40 @@
+<?xml version="1.0"?>
+
+<launch>
+  
+  <!--START GMAPPING SLAM-->
+  <arg name="base_frame" default="base_link"/>
+  <arg name="odom_frame" default="odom"/>
+  <arg name="scan_topic" default="/vrep/scan"/>
+  <arg name="map_size" default="10"/>
+  
+  <node pkg="gmapping" type="slam_gmapping" name="gmapping" output="screen">
+  	<remap from="/scan" to="/vrep/scan"/>
+    
+    <!-- Frame names -->
+    <param name="map_frame" value="map" />
+    <param name="base_frame" value="$(arg base_frame)" />
+    <param name="odom_frame" value="$(arg odom_frame)" />
+    
+    <!-- Update settings -->
+    <param name="map_update_interval" value="1" />
+    <param name="linearUpdate" value="0.0" />
+    <param name="angularUpdate" value="0.0" />
+    
+    <!-- map size -->
+    <param name="xmin" value="-$(arg map_size)" />
+    <param name="ymin" value="-$(arg map_size" />
+    <param name="xmax" value="$(arg map_size)" />
+    <param name="ymax" value="$(arg map_size)" />
+    
+  </node>
+
+  <!--TF package-->
+  <node pkg="tf" type="static_transform_publisher" name="world2map_broadcaster" args="0 0 0 0 0 0 world map 100"/>
+  <node pkg="tf" type="static_transform_publisher" name="odem2base_broadcaster" args="0 0 0 0 0 0 odom base_link 100"/>
+
+  <!--START RVIZ -->
+  <node pkg="rviz" type="rviz" name="demo_rviz" 
+    args="-d $(find final_3210)/rviz.rviz"/>
+</launch>
+

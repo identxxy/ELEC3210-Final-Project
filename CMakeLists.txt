@@ -8,8 +8,13 @@ project(final_3210)
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
+  cv_bridge
+  geometry_msgs
+  image_transport
   roscpp
   rospy
+  sensor_msgs
+  std_msgs
 )
 
 ## System dependencies are found with CMake's conventions
@@ -203,3 +208,10 @@ include_directories(
 
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)
+
+find_package(OpenCV REQUIRED)
+
+add_executable(key_board_control src/key_board_control.cpp)
+target_link_libraries(key_board_control ${catkin_LIBRARIES})
+add_executable(track src/tracking.cpp)
+target_link_libraries(track ${catkin_LIBRARIES} ${OpenCV_LIBS})

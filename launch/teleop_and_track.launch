@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+
+<launch>
+  
+  <!--START KEY TELEOP  -->
+  <node pkg="final_3210" type="key_board_control" name="teleop" output="screen" launch-prefix="gnome-terminal --"/>
+
+  <!--START TRACKING -->
+  <node pkg="final_3210" type="track" name="track" />
+  
+</launch>
+
