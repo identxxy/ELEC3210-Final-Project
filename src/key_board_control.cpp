@@ -54,22 +54,22 @@ int main(int argc, char **argv)
         {
         case UP:
             ROS_INFO("up");
-            linear_v = linear_v + 1;
+            linear_v = linear_v + 0.5;
             tw.linear.x = linear_v;
             break;
         case DOWN:
             ROS_INFO("down");
-            linear_v = linear_v - 1;
+            linear_v = linear_v - 0.5;
             tw.linear.x = linear_v;
             break;
         case LEFT:
             ROS_INFO("left");
-            angular_v = angular_v + 1;
+            angular_v = angular_v + 0.5;
             tw.angular.z = angular_v;
             break;
         case RIGHT:
             ROS_INFO("right");
-            angular_v = angular_v - 1;
+            angular_v = angular_v - 0.5;
             tw.angular.z = angular_v;
             break;
         case TRACK:

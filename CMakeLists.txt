@@ -15,6 +15,8 @@ find_package(catkin REQUIRED COMPONENTS
   rospy
   sensor_msgs
   std_msgs
+  nav_msgs
+  tf2_ros
 )
 
 ## System dependencies are found with CMake's conventions
@@ -215,3 +217,7 @@ add_executable(key_board_control src/key_board_control.cpp)
 target_link_libraries(key_board_control ${catkin_LIBRARIES})
 add_executable(track src/tracking.cpp)
 target_link_libraries(track ${catkin_LIBRARIES} ${OpenCV_LIBS})
+
+
+add_executable(location src/room_location.cpp)
+target_link_libraries(location ${catkin_LIBRARIES})
