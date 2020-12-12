@@ -1,0 +1,8 @@
+<launch>
+	
+	<node pkg="tf" type="static_transform_publisher" name="map_to_odom" args="0.0 0.0 0.0 0 0 0.0 /map /odom 100"/>
+
+  	<include file="$(find hector_mapping)/launch/mapping_vrep.launch" />
+	<!-- <include file="$(find hector_geotiff)/launch/geotiff_mapper.launch" /> -->
+
+</launch>
