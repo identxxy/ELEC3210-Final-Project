@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+
+<launch>
+  <param name="face_detection_dataset" value="$(find final_3210)/dataset/haarcascade_frontalface_default.xml"/>
+  
+  <param name="face_recognition_dataset_num" value="16"/>
+  
+  <param name="face_recognition_dataset1" value="$(find final_3210)/imgs/obama"/>
+  <param name="face_recognition_dataset2" value="$(find final_3210)/imgs/avril"/>
+  <param name="face_recognition_dataset3" value="$(find final_3210)/imgs/cartoon"/>
+  <param name="face_recognition_dataset4" value="$(find final_3210)/imgs/zhang"/>
+  <param name="face_recognition_dataset5" value="$(find final_3210)/imgs/elf"/>
+  
+  <node pkg="final_3210" type="face" name="face_node" output="screen"/>
+</launch>
+

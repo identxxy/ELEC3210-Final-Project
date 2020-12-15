@@ -3,7 +3,8 @@
 <launch>
   
   <!--START KEY TELEOP  -->
-  <node pkg="final_3210" type="key_board_control" name="teleop" output="screen" launch-prefix="gnome-terminal --"/>
+  <node pkg="final_3210" type="teleop_twist_keyboard.py" name="teleop" output="screen" launch-prefix="gnome-terminal -t teleop -e"/>
+  <!-- <node pkg="final_3210" type="key_board_control" name="teleop" output="screen" launch-prefix="gnome-terminal -t teleop -e"/> -->
 
   <!--START TRACKING -->
   <node pkg="final_3210" type="track" name="track" />

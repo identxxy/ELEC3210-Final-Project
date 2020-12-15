@@ -8,6 +8,7 @@ import roslib; roslib.load_manifest('teleop_twist_keyboard')
 import rospy
 
 from geometry_msgs.msg import Twist
+from std_msgs.msg import Bool
 
 import sys, select, termios, tty
 
@@ -71,6 +72,7 @@ class PublishThread(threading.Thread):
     def __init__(self, rate):
         super(PublishThread, self).__init__()
         self.publisher = rospy.Publisher('/vrep/cmd_vel', Twist, queue_size = 1)
+        self.switch_pub = rospy.Publisher('run_tracking', Bool, queue_size = 1)
         self.x = 0.0
         self.y = 0.0
         self.z = 0.0
@@ -211,6 +213,14 @@ if __name__=="__main__":
                 y = 0
                 z = 0
                 th = 0
+                if (key == 'a'):
+                	msg = Bool()
+                	msg.data = True
+                	pub_thread.switch_pub.publish(msg)
+                if (key == 's'):
+                	msg = Bool()
+                	msg.data = False
+                	pub_thread.switch_pub.publish(msg)
                 if (key == '\x03'):
                     break
  

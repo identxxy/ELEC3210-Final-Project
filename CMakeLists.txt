@@ -215,9 +215,12 @@ find_package(OpenCV REQUIRED)
 
 add_executable(key_board_control src/key_board_control.cpp)
 target_link_libraries(key_board_control ${catkin_LIBRARIES})
+
 add_executable(track src/tracking.cpp)
 target_link_libraries(track ${catkin_LIBRARIES} ${OpenCV_LIBS})
 
-
 add_executable(location src/room_location.cpp)
 target_link_libraries(location ${catkin_LIBRARIES})
+
+add_executable(face src/face.cpp)
+target_link_libraries(face ${catkin_LIBRARIES} ${OpenCV_LIBS})
