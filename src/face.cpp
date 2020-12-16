@@ -13,7 +13,6 @@
 #include <tf2_ros/transform_listener.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 
-
 #include <iostream>
 #include <cmath>
 using namespace std;
@@ -33,6 +32,7 @@ tf2_ros::Buffer tf_buffer;
 void imageCallback(const sensor_msgs::ImageConstPtr &msg);
 void laserCallback(const sensor_msgs::LaserScanConstPtr &msg);
 void pubMarker(geometry_msgs::Vector3 p, tf2::Quaternion q, double l, string tx);
+void clearMarker();
 
 Rect detectAndResize(Mat &frame, Mat &resizedROI, Size resize_scale = Size(50, 50))
 {
@@ -47,18 +47,15 @@ Rect detectAndResize(Mat &frame, Mat &resizedROI, Size resize_scale = Size(50, 5
     int max_i = -1;
     for (size_t i = 0; i < faces.size(); i++)
     {
-        Point start( faces[i].x, faces[i].y );
-        Point end( faces[i].x + faces[i].width, faces[i].y + faces[i].height );
-        rectangle( frame, start, end, Scalar( 255, 0, 255 ), 4 );
-        if (faces[i].width * faces[i].height)
+        Point start(faces[i].x, faces[i].y);
+        Point end(faces[i].x + faces[i].width, faces[i].y + faces[i].height);
+        rectangle(frame, start, end, Scalar(255, 0, 255), 4);
+        if (faces[i].width * faces[i].height > max_area)
         {
             max_area = faces[i].width * faces[i].height;
             max_i = i;
         }
     }
-    //-- Show what you got
-    imshow("Capture - Face detection", frame);
-    waitKey(1);
     if (faces.size() >= 1)
     {
         Mat faceROI = frame_gray(faces[max_i]);
@@ -90,55 +87,80 @@ void imageCallback(const sensor_msgs::ImageConstPtr &msg)
     Mat frame, resizedROI;
     flip(cv_ptr->image, frame, 1);
     Rect rect = detectAndResize(frame, resizedROI);
-    // if not detected, return 
-    if (rect.width == 0)
-        return;
-    // detected 
-    Point center(rect.x + rect.width/2 +1, rect.y + rect.height/2 +1);
-    double x_frame_angle = center.x * M_PI / 4.0f / 512.0f;
-    double y_frame_angle = center.y * M_PI / 4.0f / 512.0f;
-    int range_i = (M_PI / 4 + x_frame_angle) / laser_msg.angle_increment;
-    string recog_name;
-    switch (model->predict(resizedROI))
+    if (rect.width > 0)
     {
-        case 0: recog_name="Obama";break;
-        case 1: recog_name="Avril";break;
-        case 2: recog_name="Cartoon";break;
-        case 3: recog_name="Zhang";break;
-        case 4: recog_name="Elf";break;
-        default:break;
-    }
-    ROS_INFO_STREAM("Predict result : ==> " << recog_name);
-    // if received laser msg
-    if (range_i > 0)
-    {
-        double dist = laser_msg.ranges[range_i];
-        ROS_INFO_STREAM("distance : ==> " << dist);
-        double yaw = x_frame_angle - M_PI / 8;
-        double pitch = y_frame_angle - M_PI / 8;
-        tf2::Quaternion q_n, q_local, q;
-        q_n.setRPY( M_PI * 100/180, 0, 0);
-        q_local.setRPY( 0, -pitch, -yaw);
-        double length = dist / cos(pitch);
+        Point center(rect.x + rect.width / 2 + 1, rect.y + rect.height / 2 + 1);
+        double x_frame_angle = center.x * M_PI / 4.0f / 512.0f;
+        double y_frame_angle = center.y * M_PI / 4.0f / 512.0f;
+        int range_i = (M_PI / 4 + x_frame_angle) / laser_msg.angle_increment;
+        string recog_name;
+        switch (model->predict(resizedROI))
+        {
+        case 0:
+            recog_name = "Obama";
+            break;
+        case 1:
+            recog_name = "Avril";
+            break;
+        case 2:
+            recog_name = "Cartoon";
+            break;
+        case 3:
+            recog_name = "Zhang";
+            break;
+        case 4:
+            recog_name = "Elf";
+            break;
+        default:
+            break;
+        }
+        ROS_INFO_STREAM("Predict result : ==> " << recog_name);
+        putText(frame, recog_name, Point(rect.x, rect.y), FONT_HERSHEY_COMPLEX_SMALL, 0.8, cvScalar(255,255,0), 1);
+        // if received laser msg
+        if (range_i > 0)
+        {
+            double dist = laser_msg.ranges[range_i];
+            ROS_INFO_STREAM("distance : ==> " << dist);
+            double yaw = x_frame_angle - M_PI / 8;
+            double pitch = y_frame_angle - M_PI / 8;
+            tf2::Quaternion q_n, q_local, q;
+            q_n.setRPY(M_PI * 100 / 180, 0, 0);
+            q_local.setRPY(0, pitch, -yaw);
+            double length = dist / cos(pitch);
 
-        while (!tf_buffer.canTransform("map", "camera_link", ros::Time(0)));
-        geometry_msgs::TransformStamped  tf_msg = tf_buffer.lookupTransform("map", "camera_link", ros::Time(0));
-        tf2::Quaternion q_global;
-        tf2::convert(tf_msg.transform.rotation , q_global);
+            while (!tf_buffer.canTransform("map", "camera_link", ros::Time(0)))
+                ;
+            geometry_msgs::TransformStamped tf_msg = tf_buffer.lookupTransform("map", "camera_link", ros::Time(0));
+            tf2::Quaternion q_global;
+            tf2::convert(tf_msg.transform.rotation, q_global);
 
-        q = q_global * q_n * q_local;
-        q_n.setRPY( - M_PI * 100/180, 0, 0);
-        q = q* q_n;
-        q.normalize();
-        pubMarker(tf_msg.transform.translation ,  q, length, recog_name);
+            q = q_global * q_n * q_local;
+            q_n.setRPY(-M_PI * 100 / 180, 0, 0);
+            q = q * q_n;
+            q.normalize();
+            pubMarker(tf_msg.transform.translation, q, length, recog_name);
+        }
     }
+    else clearMarker();
+    //-- Show what you got
+    imshow("Capture - Face detection", frame);
+    waitKey(1);
 }
 
 void laserCallback(const sensor_msgs::LaserScanConstPtr &msg)
 {
     // original angle_increment is negative, ranges is from left to right;
-    laser_msg.angle_increment = - msg->angle_increment; 
+    laser_msg.angle_increment = -msg->angle_increment;
     laser_msg.ranges = msg->ranges;
+}
+
+void clearMarker()
+{
+    visualization_msgs::Marker clr;
+    clr.id = 0;
+    clr.action = visualization_msgs::Marker::DELETE;
+    text_pub.publish(clr);
+    arrow_pub.publish(clr);
 }
 
 void pubMarker(geometry_msgs::Vector3 p, tf2::Quaternion q, double l, string tx)
@@ -160,14 +182,15 @@ void pubMarker(geometry_msgs::Vector3 p, tf2::Quaternion q, double l, string tx)
     arrow.pose.orientation.z = q.z();
     arrow.pose.orientation.w = q.w();
     arrow.scale.x = l;
-    arrow.scale.y = 0.1;
-    arrow.scale.z = 0.1;
+    arrow.scale.y = 0.05;
+    arrow.scale.z = 0.05;
 
     text.type = visualization_msgs::Marker::TEXT_VIEW_FACING;
+    text.color.r = 1.0;
     text.text = tx;
-    text.scale.x = 0.2;
-    text.scale.y = 0.2;
-    text.scale.z = 0.2;
+    text.scale.x = 1.0;
+    text.scale.y = 1.0;
+    text.scale.z = 1.0;
 
     arrow_pub.publish(arrow);
     text_pub.publish(text);

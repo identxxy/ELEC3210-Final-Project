@@ -2,9 +2,10 @@
 
 <launch>
   <node pkg="rviz" type="rviz" name="rviz" args="-d $(find final_3210)/rviz.rviz" />
-  <node pkg="tf" type="static_transform_publisher" name="odom_to_base" args="0.0 0.0 0.0 0 0 0.0 /map /odom 10"/>
+  <node pkg="tf" type="static_transform_publisher" name="odom2base_broadcaster" args="0 0 0 0 0 0 odom base_link 100"/>
 
   <arg name="base_frame" default="base_link"/>
+
   <arg name="scan_subscriber_queue_size" default="5"/>
   <arg name="scan_topic" default="vrep/scan"/>
   <arg name="map_size" default="512"/>
@@ -23,11 +24,11 @@
     <!-- Map size / start point -->
     <param name="map_resolution" value="0.05"/>
     <param name="map_size" value="$(arg map_size)"/>
-
+    <param name="laser_min_dist" value="0.05" />
     <param name="map_multi_res_levels" value="2" />
     
     <!-- Map update parameters -->
-    <param name="map_pub_period" value="0.1"/>
+    <param name="map_pub_period" value="0.2"/>
     <param name="update_factor_free" value="0.4"/>
     <param name="update_factor_occupied" value="0.9" />    
     <param name="map_update_distance_thresh" value="0.4"/>
@@ -35,7 +36,6 @@
     
     <!-- Advertising config --> 
     <param name="advertise_map_service" value="true"/>
-    
     <param name="scan_subscriber_queue_size" value="$(arg scan_subscriber_queue_size)"/>
     <param name="scan_topic" value="$(arg scan_topic)"/>
     

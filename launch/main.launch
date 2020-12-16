@@ -1,6 +1,7 @@
 <?xml version="1.0"?>
 
 <launch>
+  <param name="/use_sim_time" value="true"/>
   <include file="$(find final_3210)/launch/slam.launch" />
   <include file="$(find final_3210)/launch/teleop_and_track.launch" />
   <include file="$(find final_3210)/launch/face.launch" />
