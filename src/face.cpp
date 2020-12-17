@@ -92,7 +92,7 @@ void imageCallback(const sensor_msgs::ImageConstPtr &msg)
         Point center(rect.x + rect.width / 2 + 1, rect.y + rect.height / 2 + 1);
         double x_frame_angle = center.x * M_PI / 4.0f / 512.0f;
         double y_frame_angle = center.y * M_PI / 4.0f / 512.0f;
-        int range_i = (M_PI / 4 + x_frame_angle) / laser_msg.angle_increment;
+        int range_i = (M_PI * 3 / 8 + x_frame_angle) / laser_msg.angle_increment;
         string recog_name;
         switch (model->predict(resizedROI))
         {
