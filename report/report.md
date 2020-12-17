@@ -1,4 +1,9 @@
-# Overview
+# Final Project Report
+
+XU Xinyuan 20493356
+XU Jinyun 20583668
+
+## Overview
 
 In this project, we tried to control a robot car to finish different tasks in the simulation. We used ROS as the primary tool and used V-rep to simulate all the environment and behavior.  
 
@@ -6,7 +11,9 @@ The robot car with lidar and camera is located at the beginning point in a room 
 
 We got familiar with the basic ROS concept and implementation like package, nodes, topics, subscribers, and publishers.  We also studied how to use the simulation tools to perform a robot control task. Besides, we implemented the control method, SLAM, image processing that we learned in this course before.
 
-# Environment setup
+<img src="./imgs/rosgraph.png" alt="rosgraph" style="zoom:50%;" />
+
+## Environment setup
 
 Test environment:
 
@@ -29,15 +36,17 @@ Setup
    - location: print out location and judge the room label
    - Capture - Face detection: image get from the camera. It will mark the recognized face.
 
-# Design and Implement
+## Design and Implement
 
-## Work distribution
+### Work distribution
 
 **XU Jinyun:** keyboard control(task1), location judgment(task3), visual servo(task5), and report writing.
 
-**XU Xinyuan:** map building(task2), face recognition(task4), launch file(task6), demo video making, and report writing.
+**XU Xinyuan:** map building(task2), face recognition(task4), launch file(task6), demo video editing, and report writing.
 
-## 1 keyboard control
+
+
+### 1 keyboard control
 
 **by Jinyun**
 
@@ -47,13 +56,19 @@ So we take a reference from the official ROS keyboard control:  `teleop_twist_ke
 
 <img src="./imgs/keyboard control.png" style="zoom:50%;" />
 
-## 2 build map with laser
+
+
+### 2 build map with laser
 
 **by Jinyun & Xinyuan** 
 
+We use the `hector-mapping` to draw the map. It only requires the transform from `laser_link` to `base_link`. It can publish the transform from `map` to `odom`. So, we use a `static_transofrm_publisher` to bind the `odom` and `base_link` together. The final tf tree is shown below.
+
+<img src="./imgs/frames.png" alt="frames" style="zoom:40%;" />
 
 
-## 3 judge location
+
+### 3 judge location
 
 **by Jinyun**
 
@@ -64,9 +79,17 @@ Instead, we directly use the position information published by `hector-SLAM` pac
 <img src="./imgs/area.png" style="zoom:50%;" />
 
 
-## 4 image recognition and localization
+
+
+
+
+### 4 image recognition and localization
 
 **by  Xinyuan**
+
+0. Image Preprocessing
+
+   We only flip the image from the camera. Since the image is from the simulation without any noise. We did not use any filter to reduce the noise. There is also no need to perform histogram equalization to enhance the contract. Because the background is only bright gray color, histogram equalization will make the face very dark and hard to detect.
 
 1. Detection 
 
@@ -92,9 +115,13 @@ Instead, we directly use the position information published by `hector-SLAM` pac
 
    In a coordinate where X is front, Y is left, and Z is up, The rotation $q$ to move the $P_c$ to the center in Row-Pitch-Yaw is $(0,\theta_y,-\theta_x)$. However, the coordinate of `camera_link` is not the case. The X(red) axis is correct, but the other two axises are rotated -100 degree relative to X axis. Let this rotation be $q_n$, Row-Pitch-Yaw form $({-100\pi\over 180}, 0, 0)$. So the final rotation for `camera_link` is $q_n^{-1}*q*q_n$. The green arrow stands for the X-axis of the new frame, where $P_c$ is located at $(l,0,0)$
 
-   <img src="./imgs/frame.png" style="zoom:50%;" />
+   <img src="./imgs/frame.png" style="zoom:30%;" />
+   
+   When drawing the arrow. We use the transform from `map` to `camera_link`. The origin of the arrow is the translation of the transform. The orientation is the rotation of the transform multiplied the $q_n^{-1}*q*q_n$. The scale of the arrow is the $l$ we calculated above. In this way, the green arrow point from the `camera_link` to the center of face detected.
+   
+   
 
-## 5 visual servo
+### 5 visual servo
 
 **by Jinyun**
 
@@ -102,16 +129,20 @@ In the visual servo part, the robot will automatically track the yellow ball wit
 
 1. Image processing
    
-   We obtained the camera image from the robot and turn it into `mat` type for `OpenCV` using [cv_bridge]. For better performance, we extract all yellow elements and turn it into a bit form image only black and white using [COLOR_BGR2HSV].  Then we simply use [HoughCircles] to detect all circles and found their centers. With a good parameter setting most time it will only detect one circle.
+   We obtained the camera image from the robot and turn it into `mat` type for `OpenCV` using [cv_bridge][]. For better performance, we extract all yellow elements and turn it into a bit form image only black and white using [COLOR_BGR2HSV][].  Then we simply use [HoughCircles][] to detect all circles and found their centers. With a good parameter setting most time it will only detect one circle.
+   
 2. Basic control	
    
 	In the control part, we used the radius of the detected circle as the measurement of distance. When the radius is less than a certain range, which means the distance between the robot and the ball is far enough, the robot will start moving. To get the moving direction, we took the center point of the circle as the reference. If the vertical position is on the left the robot will turn right a little bit, verse vice. Remember that the image from the camera is flipped, so the direction is opposite.
-3. Improvment 
+	
+3. Improvement 
    
 	Because of the blocks and big turning, the camera may sometimes lose the ball. And the robot will be stuck in the turning corner. This always happened at the intersection of turning and straight line. To avoid this situation, we added an extra condition. When the camera lost the ball, the robot will keep the last movement command for a while so that it can catch the ball again.
+	
+	
 
 
-## 6 launch file
+### 6 launch file
 
 **by Xinyuan**
 
@@ -123,16 +154,20 @@ In the visual servo part, the robot will automatically track the yellow ball wit
 
 `face.launch` specify the dataset location and launch the node `face`.
 
-## limitation
+## Conclusion
 
-1. For keyboard control, the robot itself will produce some noise. made the control not perfect. For future studies, we may apply some filter for better performance.
-2. In visual servo, we only use P control, for better performance we can apply more sophisticated PID control.
-3. In location judgment, we can also use SLAM to get the whole environment information including size.
+### limitation
 
-# Conclusion
+1. In visual servo, we only use P control, for better performance we can apply more sophisticated PID control.
+2. In location judgment, we can also use SLAM to get the whole environment information including size.
+
+### Future work
+
+1. Implement PID control for visual servo. Using ROS `dynamic_reconfigure` to tune the PID parameters in run-time.
+2. Improve the face detector for better performance on the cartoon image.
 
 
-# References
+## References
 
 [hector-mapping]: https://github.com/tu-darmstadt-ros-pkg/hector_slam
 [Haar Cascade]: https://docs.opencv.org/3.4/db/d28/tutorial_cascade_classifier.html
@@ -142,4 +177,13 @@ In the visual servo part, the robot will automatically track the yellow ball wit
 [HoughCircles]: https://docs.opencv.org/3.4/d4/d70/tutorial_hough_circle.html
 [COLOR_BGR2HSV]: https://docs.opencv.org/3.4/d8/d01/group__imgproc__color__conversions.html
 
+```
+[hector-mapping]: https://github.com/tu-darmstadt-ros-pkg/hector_slam
+[Haar Cascade]: https://docs.opencv.org/3.4/db/d28/tutorial_cascade_classifier.html
+[Haar Cascade dataset]: https://github.com/opencv/opencv/tree/3.4/data
+[Eigenfaces]: https://docs.opencv.org/master/da/d60/tutorial_face_main.html
+[cv_bridge]: http://wiki.ros.org/cv_bridge/Tutorials/UsingCvBridgeToConvertBetweenROSImagesAndOpenCVImages
+[HoughCircles]: https://docs.opencv.org/3.4/d4/d70/tutorial_hough_circle.html
+[COLOR_BGR2HSV]: https://docs.opencv.org/3.4/d8/d01/group__imgproc__color__conversions.html
 
+```
